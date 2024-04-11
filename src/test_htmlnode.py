@@ -15,6 +15,11 @@ class TestHTMLNode(unittest.TestCase):
         expected = " href=\"https://www.google.com\" target=\"_blank\""
         self.assertEqual(expected, node.props_to_html())
 
+    def test_props_to_html_for_none_props(self):
+        node = HTMLNode("p", "Example paragraph", None, None)
+        expected = ""
+        self.assertEqual(expected, node.props_to_html())
+
 
 if __name__ == '__main__':
     unittest.main()
