@@ -9,3 +9,9 @@ Run app:
 ```chmod +x main.sh```
 
 ```./main.sh```
+
+Run tests:
+
+```chmod +x test.sh```
+
+```./test.sh```
