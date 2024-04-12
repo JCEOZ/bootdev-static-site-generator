@@ -29,6 +29,26 @@ class TestLeafNode(unittest.TestCase):
         expected = "<a href=\"https://www.google.com\" target=\"_blank\">Click me!</a>"
         self.assertEqual(expected, node.to_html())
 
+    def test_leaf_nodes_equal(self):
+        node1 = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+        node2 = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+        self.assertEqual(node1, node2)
+
+    def test_leaf_nodes_equal_different_tag(self):
+        node1 = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+        node2 = LeafNode("i", "Click me!", {"href": "https://www.google.com"})
+        self.assertNotEqual(node1, node2)
+
+    def test_leaf_nodes_equal_different_value(self):
+        node1 = LeafNode("i", "Don't click me!", {"href": "https://www.google.com"})
+        node2 = LeafNode("i", "Click me!", {"href": "https://www.google.com"})
+        self.assertNotEqual(node1, node2)
+
+    def test_leaf_nodes_equal_different_props(self):
+        node1 = LeafNode("i", "Click me!", {"href": "https://www.boot.dev"})
+        node2 = LeafNode("i", "Click me!", {"href": "https://www.google.com"})
+        self.assertNotEqual(node1, node2)
+
 
 if __name__ == '__main__':
     unittest.main()
