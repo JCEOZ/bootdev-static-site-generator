@@ -8,18 +8,25 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         return ValueError(f"Unsupported delimiter: {delimiter}")
     result = []
     for old_node in old_nodes:
-        # TODO: fix this code - all old_nodes suppose to be TextNode, but TextNode has different text_types and this should be checked if equals text_type_text
-        if not isinstance(old_node, TextNode):
+        if old_node.text_type != text_type_text:
             result.append(old_node)
             continue
-        split_text = old_node.text.split(delimiter)
-        # TODO: seems like TextNode value can have multiple occurrences of word wrapped with delimiter, not just one
-        if len(split_text) != 3:
-            raise ValueError(f"Not found opening or closing {delimiter} after splitting {old_node.text}")
-        if split_text[0] != "":
-            result.append(TextNode(split_text[0], text_type_text))
-        result.append(TextNode(split_text[1], text_type))
-        if split_text[2] != "":
-            result.append(TextNode(split_text[2], text_type_text))
 
+        number_of_delimiters = old_node.text.count(delimiter)
+        if number_of_delimiters == 0:
+            result.append(old_node)
+            continue
+        if number_of_delimiters % 2 != 0:
+            raise ValueError(f"Invalid number of delimiters: \"{delimiter}\" in \"{old_node.text}\"")
+
+        sections = old_node.text.split(delimiter)
+        split_nodes = []
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], text_type_text))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        result.extend(split_nodes)
     return result
