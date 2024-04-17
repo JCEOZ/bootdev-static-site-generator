@@ -111,3 +111,15 @@ def split_nodes_link(old_nodes):
         if original_text != "":
             result.append(TextNode(original_text, text_type_text))
     return result
+
+
+def text_to_textnodes(text):
+    text_node = TextNode(text, text_type_text)
+    result = [text_node]
+    for supported_delimiter in split_nodes_supported_delimiter_types:
+        result = split_nodes_delimiter(result,
+                                       supported_delimiter,
+                                       split_nodes_supported_delimiter_types[supported_delimiter])
+    result = split_nodes_image(result)
+    result = split_nodes_link(result)
+    return result
