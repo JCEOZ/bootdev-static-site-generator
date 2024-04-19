@@ -1,25 +1,30 @@
 import os
 import shutil
 
-static_folder_path = "../static"
-public_folder_path = "../public"
+static_directory_path = "../static"
+public_directory_path = "../public"
 
 def main():
-    static_folder_exists = os.path.exists(static_folder_path)
-    print(f"Static folder exists: {static_folder_exists}")
+    verify_static_content_directory()
+    prepare_public_content_directory()
 
-    if not static_folder_exists:
-        raise Exception("Static folder does not exist")
 
-    public_folder_exists = os.path.exists(public_folder_path)
-    print(f"Public folder exists: {public_folder_exists}")
 
-    if public_folder_exists:
-        print(f"Deleting existing public folder: {public_folder_path}")
-        shutil.rmtree(public_folder_path)
+def verify_static_content_directory():
+    static_directory_exists = os.path.exists(static_directory_path)
+    print(f"Static directory exists: {static_directory_exists}")
+    if not static_directory_exists:
+        raise Exception("Static directory does not exist")
 
-    print(f"Creating new public folder: {public_folder_path}")
-    os.mkdir(public_folder_path)
+
+def prepare_public_content_directory():
+    public_directory_exists = os.path.exists(public_directory_path)
+    print(f"Public directory exists: {public_directory_exists}")
+    if public_directory_exists:
+        print(f"Deleting existing public directory: {public_directory_path}")
+        shutil.rmtree(public_directory_path)
+    print(f"Creating new public directory: {public_directory_path}")
+    os.mkdir(public_directory_path)
 
 
 main()
