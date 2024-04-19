@@ -1,5 +1,5 @@
 import unittest
-from src.generatepage import extract_title
+from src.generatepage import __extract_title__
 
 
 class TestGeneratePage(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestGeneratePage(unittest.TestCase):
         """
         expected = "Page title"
 
-        self.assertEqual(expected, extract_title(markdown))
+        self.assertEqual(expected, __extract_title__(markdown))
 
     def test_extract_title_no_title(self):
         markdown = """
@@ -20,7 +20,7 @@ class TestGeneratePage(unittest.TestCase):
                 Some other content
                 """
         with self.assertRaises(Exception):
-            extract_title(markdown)
+            __extract_title__(markdown)
 
 
 if __name__ == '__main__':
