@@ -1,6 +1,7 @@
 import itertools
 
-from src.htmlnode import HTMLNode
+from src.inline import text_to_textnodes
+from src.parentnode import ParentNode
 
 block_type_paragraph = "paragraph"
 block_type_heading = "heading"
@@ -67,72 +68,123 @@ def __is_block_type_unordered_list__(block_type):
 
 def __is_block_type_ordered_list__(block_type):
     lines = block_type.split('\n')
-    for i in range(1, len(lines)):
-        prefix = f"{i}. "
-        if not lines[i - 1].startswith(prefix):
+    for i in range(0, len(lines)):
+        prefix = f"{i + 1}. "
+        if not lines[i].startswith(prefix):
             return False
     return True
 
-# TODO: refactor to use ParentNodes and TextNodes instead of HTMLNode
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
-    html_nodes = []
+    children_nodes = []
     for block in blocks:
         block_type = block_to_block_type(block)
         if block_type == block_type_heading:
-            html_nodes.append(__heading_block_to_html_node__(block))
+            children_nodes.append(__heading_block_to_html_node__(block))
         if block_type == block_type_code:
-            html_nodes.append(__code_block_to_html_node__(block))
+            children_nodes.append(__code_block_to_html_node__(block))
         if block_type == block_type_quote:
-            html_nodes.append(__quote_block_to_html_node__(block))
+            children_nodes.append(__quote_block_to_html_node__(block))
         if block_type == block_type_unordered_list:
-            html_nodes.append(__unordered_list_block_to_html_node__(block))
+            children_nodes.append(__unordered_list_block_to_html_node__(block))
         if block_type == block_type_ordered_list:
-            html_nodes.append(__ordered_list_block_to_html_node__(block))
+            children_nodes.append(__ordered_list_block_to_html_node__(block))
         if block_type == block_type_paragraph:
-            html_nodes.append(__paragraph_block_to_html_node__(block))
-    top_level_html_node = HTMLNode(tag="<div>", children=html_nodes)
+            children_nodes.append(__paragraph_block_to_html_node__(block))
+    top_level_html_node = ParentNode(tag="div", children=children_nodes)
     return top_level_html_node
+
+
+def __text_nodes_to_html_nodes__(text_nodes):
+    html_nodes = []
+    for text_node in text_nodes:
+        html_nodes.append(text_node.to_html_node())
+    return html_nodes
 
 
 def __heading_block_to_html_node__(block):
     tag = ""
-    if block.startswith("# "): tag = "<h1>"
-    if block.startswith("## "): tag = "<h2>"
-    if block.startswith("### "): tag = "<h3>"
-    if block.startswith("#### "): tag = "<h4>"
-    if block.startswith("##### "): tag = "<h5>"
-    if block.startswith("###### "): tag = "<h6>"
-    return HTMLNode(tag=tag, value=block)
+    text = ""
+    if block.startswith("# "):
+        tag = "h1"
+        # stripping leading "# "
+        text = block[len("# "):]
+    if block.startswith("## "):
+        tag = "h2"
+        # stripping leading "## "
+        text = block[len("## "):]
+    if block.startswith("### "):
+        tag = "h3"
+        # stripping leading "### "
+        text = block[len("### "):]
+    if block.startswith("#### "):
+        tag = "h4"
+        # stripping leading "#### "
+        text = block[len("#### "):]
+    if block.startswith("##### "):
+        tag = "h5"
+        # stripping leading "##### "
+        text = block[len("##### "):]
+    if block.startswith("###### "):
+        tag = "h6"
+        # stripping leading "###### "
+        text = block[len("###### "):]
+    children_text_nodes = text_to_textnodes(text)
+    children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+    return ParentNode(tag=tag, children=children_html_nodes)
 
 
 def __code_block_to_html_node__(block):
-    child_node = HTMLNode(tag="<code>", value=block)
-    parent_node = HTMLNode(tag="<pre>", children=[child_node])
-    return parent_node
+    # Stripping leading and trailing "```"
+    text = block[4:-3]
+    children_text_nodes = text_to_textnodes(text)
+    children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+    code_node = ParentNode(tag="code", children=children_html_nodes)
+    pre_node = ParentNode(tag="pre", children=[code_node])
+    return pre_node
 
 
 def __quote_block_to_html_node__(block):
-    return HTMLNode(tag="<blockquote", value=block)
+    lines = block.split('\n')
+    strip_lines = []
+    for line in lines:
+        strip_lines.append(line.lstrip(">").strip())
+    text = " ".join(strip_lines)
+    children_text_nodes = text_to_textnodes(text)
+    children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+    return ParentNode(tag="blockquote", children=children_html_nodes)
 
 
 def __unordered_list_block_to_html_node__(block):
-    children_nodes = []
+    li_nodes = []
     lines = block.split('\n')
     for line in lines:
-        children_nodes.append(HTMLNode(tag="<li>", value=line))
-    parent_node = HTMLNode(tag="<ul>", children=children_nodes)
-    return parent_node
+        #stripping leading "* " or "- "
+        text = line[2:]
+        children_text_nodes = text_to_textnodes(text)
+        children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+        li_nodes.append(ParentNode(tag="li", children=children_html_nodes))
+    ul_node = ParentNode(tag="ul", children=li_nodes)
+    return ul_node
 
 
 def __ordered_list_block_to_html_node__(block):
-    children_nodes = []
+    li_nodes = []
     lines = block.split('\n')
     for line in lines:
-        children_nodes.append(HTMLNode(tag="<li>", value=line))
-    parent_node = HTMLNode(tag="<ol>", children=children_nodes)
-    return parent_node
+        text_start_index = line.index(". ") + 2
+        # stripping "X. " where "X" is list order number
+        text = line[text_start_index:]
+        children_text_nodes = text_to_textnodes(text)
+        children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+        li_nodes.append(ParentNode(tag="li", children=children_html_nodes))
+    ol_node = ParentNode(tag="ol", children=li_nodes)
+    return ol_node
 
 
 def __paragraph_block_to_html_node__(block):
-    return HTMLNode(tag="<p>", value=block)
+    lines = block.split('\n')
+    text = " ".join(lines)
+    children_text_nodes = text_to_textnodes(text)
+    children_html_nodes = __text_nodes_to_html_nodes__(children_text_nodes)
+    return ParentNode(tag="p", children=children_html_nodes)
